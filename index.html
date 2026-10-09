@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#101827">
+<title>Artale 練功效率計算器</title>
+
+<style>
+:root {
+  --bg: #101827;
+  --panel: #1b2638;
+  --panel2: #243249;
+  --text: #f4f7fb;
+  --muted: #a9b8cc;
+  --blue: #70b7ff;
+  --green: #66e0a3;
+  --red: #ff8c91;
+  --border: #36455b;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 16px;
+  color: var(--text);
+  background: var(--bg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Noto Sans TC", sans-serif;
+  line-height: 1.55;
+}
+
+.container {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+header {
+  padding: 18px 4px;
+}
+
+h1 {
+  font-size: 25px;
+  margin: 0 0 8px;
+}
+
+.subtitle {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+h2 {
+  font-size: 18px;
+  margin: 0 0 14px;
+}
+
+h3 {
+  font-size: 15px;
+  margin: 14px 0 8px;
+}
+
+label {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+  margin: 10px 0 5px;
+}
+
+input, select, button {
+  width: 100%;
+  min-height: 45px;
+  border-radius: 9px;
+  font-size: 16px;
+}
+
+input, select {
+  padding: 10px;
+  color: var(--text);
+  background: #111c2b;
+  border: 1px solid var(--border);
+}
+
+button {
+  padding: 10px 12px;
+  color: var(--text);
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+button.primary {
+  background: #2469bd;
+  border-color: #3988e7;
+}
+
+button.success {
+  background: #176844;
+  border-color: #279a66;
+}
+
+button.danger {
+  background: #6e303a;
+  border-color: #a94b59;
+}
+
+button:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.potion-info {
+  background: #111c2b;
+  border-radius: 9px;
+  padding: 10px;
+  margin-top: 9px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.potion-info strong {
+  color: var(--text);
+}
+
+.timer {
+  text-align: center;
+  font-size: 36px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  padding: 10px;
+  color: var(--green);
+}
+
+.status {
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.notice {
+  background: #332d20;
+  border: 1px solid #655638;
+  padding: 11px;
+  border-radius: 9px;
+  color: #f5d99c;
+  font-size: 13px;
+  margin-top: 10px;
+}
+
+.result {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.8;
+  font-size: 14px;
+}
+
+.record {
+  padding: 13px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.record:last-child {
+  border-bottom: 0;
+}
+
+.record-title {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.record-detail {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 5px;
+  white-space: pre-wrap;
+}
+
+.positive { color: var(--green); }
+.negative { color: var(--red); }
+
+.small {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.hidden { display: none; }
+
+footer {
+  color: var(--muted);
+  font-size: 12px;
+  padding: 10px 2px 25px;
+}
+
+@media (max-width: 420px) {
+  body { padding: 10px; }
+  .card { padding: 12px; }
+  h1 { font-size: 22px; }
+  .grid { gap: 8px; }
+  .timer { font-size: 32px; }
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<header>
+  <h1>⚡ Artale 練功效率計算器</h1>
+  <div class="subtitle">
+    記錄經驗效率、補品成本、楓幣收益與各地圖表現
+  </div>
+</header>
+
+<section class="card">
+  <h2>📍 練功設定</h2>
+
+  <label for="mapName">練功地圖名稱</label>
+  <input id="mapName" placeholder="例如：死靈、死7、時間神殿">
+
+  <div class="grid">
+    <div>
+      <label for="hpPotion">HP 補品</label>
+      <select id="hpPotion"></select>
+    </div>
+    <div>
+      <label for="mpPotion">MP 補品</label>
+      <select id="mpPotion"></select>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="potion-info" id="hpInfo"></div>
+    <div class="potion-info" id="mpInfo"></div>
+  </div>
+
+  <div class="notice">
+    櫻桃派的單價尚未確認。選用時請輸入實際單價，否則不能進行成本計算。
+    如果使用其他補品，也可以修改單價。
+  </div>
+</section>
+
+<section class="card">
+  <h2>🟢 開始練功</h2>
+
+  <label for="startExp">開始經驗值（%）</label>
+  <input id="startExp" type="number" min="0" max="100"
+    step="0.0001" placeholder="例如：35.25">
+
+  <label for="startMesos">開始時持有楓幣</label>
+  <input id="startMesos" type="number" min="0" step="1"
+    placeholder="例如：125000000">
+
+  <div class="grid">
+    <div>
+      <label for="startHpCount">HP 補品剩餘數量</label>
+      <input id="startHpCount" type="number" min="0" step="1"
+        placeholder="例如：500">
+    </div>
+    <div>
+      <label for="startMpCount">MP 補品剩餘數量</label>
+      <input id="startMpCount" type="number" min="0" step="1"
+        placeholder="例如：300">
+    </div>
+  </div>
+
+  <button class="primary" id="startButton" onclick="startSession()">
+    ▶ 開始計時
+  </button>
+
+  <div class="small">
+    開始前請先確認地圖、補品，以及四項數據都正確。
+  </div>
+</section>
+
+<section class="card">
+  <h2>⏱️ 練功計時</h2>
+
+  <div class="timer" id="timer">00:00:00</div>
+  <div class="status" id="sessionStatus">尚未開始</div>
+
+  <button onclick="pauseSession()" id="pauseButton" disabled>
+    暫停／繼續計時
+  </button>
+</section>
+
+<section class="card">
+  <h2>🔴 結束練功</h2>
+
+  <label for="endExp">結束經驗值（%）</label>
+  <input id="endExp" type="number" min="0" max="100"
+    step="0.0001" placeholder="例如：43.80">
+
+  <label for="endMesos">結束時持有楓幣</label>
+  <input id="endMesos" type="number" min="0" step="1"
+    placeholder="例如：128000000">
+
+  <div class="grid">
+    <div>
+      <label for="endHpCount">HP 補品剩餘數量</label>
+      <input id="endHpCount" type="number" min="0" step="1"
+        placeholder="例如：460">
+    </div>
+    <div>
+      <label for="endMpCount">MP 補品剩餘數量</label>
+      <input id="endMpCount" type="number" min="0" step="1"
+        placeholder="例如：275">
+    </div>
+  </div>
+
+  <button class="success" onclick="finishSession()" id="finishButton" disabled>
+    ■ 結束並計算結果
+  </button>
+</section>
+
+<section class="card">
+  <h2>📊 本次練功結果</h2>
+  <div id="result" class="result">完成一次練功後，結果會顯示於此。</div>
+</section>
+
+<section class="card">
+  <h2>🗺️ 地圖效率比較</h2>
+  <div class="small">
+    依照已保存的紀錄比較各地圖平均每 10 分鐘經驗增長。
+  </div>
+  <button onclick="renderMapComparison()">更新地圖比較</button>
+  <div id="mapComparison"></div>
+</section>
+
+<section class="card">
+  <h2>📚 歷史練功紀錄</h2>
+  <div id="recordCount" class="small">目前 0 筆紀錄</div>
+
+  <button onclick="exportRecords()">📤 匯出 JSON 備份</button>
+  <button onclick="exportCSV()">📄 匯出 CSV 表格</button>
+  <button onclick="renderRecords()">重新整理紀錄</button>
+
+  <div id="records"></div>
+
+  <button class="danger" onclick="clearRecords()">
+    刪除全部歷史紀錄
+  </button>
+  <div class="small">
+    刪除操作無法復原，請先匯出備份。
+  </div>
+</section>
+
+<footer>
+  資料目前保存在這個瀏覽器的本機儲存空間。
+  清除網站資料或更換裝置時，紀錄不會自動同步。
+  請定期匯出備份。
+</footer>
+
+</div>
+
+<script>
+"use strict";
+
+// ==========================================
+// 補品資料
+// ==========================================
+
+const HP_POTIONS = {
+  "熱狗堡":       { heal: 500,  price: 503,  location: "玩具城" },
+  "鹽味拉麵":     { heal: 500,  price: 550,  location: "古代神社" },
+  "豚骨拉麵":     { heal: 800,  price: 850,  location: "古代神社" },
+  "喇沙":         { heal: 800,  price: 800,  location: "新加坡" },
+  "烤鰻魚":       { heal: 1000, price: 1045, location: "防衛本部" },
+  "拉麵":         { heal: 1000, price: 1100, location: "古代神社" },
+  "檳城蝦麵":     { heal: 1200, price: 1200, location: "新加坡" },
+  "中華拉麵":     { heal: 1500, price: 1600, location: "古代神社" },
+  "胡蘿蔔蛋糕":   { heal: 1800, price: 1800, location: "新加坡" },
+  "棒冰棒":       { heal: 2000, price: 2185, location: "玩具城／防衛本部" },
+  "雞腿飯":       { heal: 2200, price: 2200, location: "新加坡" },
+  "沙嗲":         { heal: 2600, price: 2600, location: "新加坡" },
+  "櫻桃派":       { heal: 2000, price: null, location: "新葉城" }
+};
+
+const MP_POTIONS = {
+  "清晨之露": { heal: 4000, price: 7695, location: "防衛本部" },
+  "黃昏之露": { heal: 5000, price: 9690, location: "防衛本部" },
+  "櫻桃派":   { heal: 2000, price: null, location: "新葉城" }
+};
+
+const $ = id => document.getElementById(id);
+
+let session = null;
+let timerInterval = null;
+let paused = false;
+let elapsedBeforePause = 0;
+let lastTick = 0;
+
+// ==========================================
+// 補品選單
+// ==========================================
+
+function populatePotionMenus() {
+  for (const name of Object.keys(HP_POTIONS)) {
+    $("hpPotion").add(new Option(name, name));
+  }
+
+  for (const name of Object.keys(MP_POTIONS)) {
+    $("mpPotion").add(new Option(name, name));
+  }
+
+  $("hpPotion").value = "烤鰻魚";
+  $("mpPotion").value = "清晨之露";
+
+  $("hpPotion").addEventListener("change", updatePotionInfo);
+  $("mpPotion").addEventListener("change", updatePotionInfo);
+
+  updatePotionInfo();
+}
+
+function getPotion(type) {
+  const isHP = type === "hp";
+  const selected = $(isHP ? "hpPotion" : "mpPotion").value;
+  const base = (isHP ? HP_POTIONS : MP_POTIONS)[selected];
+
+  const savedPrice = base.price === null ? "" : String(base.price);
+  const price = prompt(
+    `${selected}：請確認單價（楓幣）`,
+    savedPrice
+  );
+
+  // 不將取消操作當成免費或零元。
+  if (price === null) return null;
+
+  const normalized = price.trim().replace(/,/g, "");
+
+  if (normalized === "" || !/^\d+(\.\d+)?$/.test(normalized)) {
+    alert("請輸入有效的補品單價。");
+    return null;
+  }
+
+  return {
+    name: selected,
+    heal: base.heal,
+    price: Number(normalized),
+    location: base.location
+  };
+}
+
+function updatePotionInfo() {
+  const hp = HP_POTIONS[$("hpPotion").value];
+  const mp = MP_POTIONS[$("mpPotion").value];
+
+  $("hpInfo").innerHTML =
+    `<strong>HP：${hp.heal.toLocaleString()}</strong><br>` +
+    `單價：${hp.price === null ? "待輸入" : hp.price.toLocaleString()} 楓幣<br>` +
+    `地點：${escapeHTML(hp.location)}`;
+
+  $("mpInfo").innerHTML =
+    `<strong>MP：${mp.heal.toLocaleString()}</strong><br>` +
+    `單價：${mp.price === null ? "待輸入" : mp.price.toLocaleString()} 楓幣<br>` +
+    `地點：${escapeHTML(mp.location)}`;
+}
+
+// ==========================================
+// 輸入驗證
+// ==========================================
+
+function getNumber(id, label, options = {}) {
+  const raw = $(id).value.trim();
+
+  if (raw === "") {
+    throw new Error(`請填寫「${label}」。`);
+  }
+
+  const value = Number(raw);
+
+  if (!Number.isFinite(value)) {
+    throw new Error(`「${label}」不是有效數字。`);
+  }
+
+  if (options.integer && !Number.isInteger(value)) {
+    throw new Error(`「${label}」必須是整數。`);
+  }
+
+  if (value < 0) {
+    throw new Error(`「${label}」不能小於 0。`);
+  }
+
+  if (options.max !== undefined && value > options.max) {
+    throw new Error(`「${label}」不能超過 ${options.max}。`);
+  }
+
+  return value;
+}
+
+function readInputs(prefix) {
+  return {
+    exp: getNumber(prefix + "Exp", "經驗百分比", { max: 100 }),
+    mesos: getNumber(prefix + "Mesos", "楓幣", { integer: true }),
+    hpCount: getNumber(prefix + "HpCount", "HP 補品數量", { integer: true }),
+    mpCount: getNumber(prefix + "MpCount", "MP 補品數量", { integer: true })
+  };
+}
+
+// ==========================================
+// 計時器
+// ==========================================
+
+function elapsedSeconds() {
+  if (!session) return 0;
+
+  if (paused) return elapsedBeforePause;
+
+  return elapsedBeforePause + (Date.now() - lastTick) / 1000;
+}
+
+function formatTime(seconds) {
+  seconds = Math.max(0, Math.floor(seconds));
+
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+
+  return [h, m, s].map(n => String(n).padStart(2, "0")).join(":");
+}
+
+function updateTimer() {
+  $("timer").textContent = formatTime(elapsedSeconds());
+}
+
+function startSession() {
+  if (session) {
+    alert("目前已有進行中的練功紀錄。");
+    return;
+  }
+
+  try {
+    const start = readInputs("start");
+    const map = $("mapName").value.trim();
+
+    if (!map) {
+      throw new Error("請先填寫練功地圖名稱。");
+    }
+
+    if (start.hpCount < 0 || start.mpCount < 0) {
+      throw new Error("補品數量不正確。");
+    }
+
+    const hp = getPotion("hp");
+    if (!hp) return;
+
+    const mp = getPotion("mp");
+    if (!mp) return;
+
+    session = {
+      map,
+      start,
+      hp,
+      mp,
+      startedAt: new Date().toISOString()
+    };
+
+    paused = false;
+    elapsedBeforePause = 0;
+    lastTick = Date.now();
+
+    $("startButton").disabled = true;
+    $("finishButton").disabled = false;
+    $("pauseButton").disabled = false;
+    $("sessionStatus").textContent = "練功中";
+
+    timerInterval = setInterval(updateTimer, 500);
+    updateTimer();
+
+    alert("開始計時！請開始練功。");
+
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+function pauseSession() {
+  if (!session) return;
+
+  if (!paused) {
+    elapsedBeforePause += (Date.now() - lastTick) / 1000;
+    paused = true;
+    $("pauseButton").textContent = "▶ 繼續計時";
+    $("sessionStatus").textContent = "計時已暫停";
+  } else {
+    paused = false;
+    lastTick = Date.now();
+    $("pauseButton").textContent = "暫停／繼續計時";
+    $("sessionStatus").textContent = "練功中";
+  }
+
+  updateTimer();
+}
+
+// ==========================================
+// 計算結果
+// ==========================================
+
+function finishSession() {
+  if (!session) {
+    alert("目前沒有進行中的紀錄。");
+    return;
+  }
+
+  try {
+    const end = readInputs("end");
+    const elapsed = elapsedSeconds();
+
+    if (elapsed <= 0) {
+      throw new Error("練功時間必須大於 0。");
+    }
+
+    if (end.hpCount > session.start.hpCount) {
+      throw new Error("結束時 HP 補品數量不能比開始時多。");
+    }
+
+    if (end.mpCount > session.start.mpCount) {
+      throw new Error("結束時 MP 補品數量不能比開始時多。");
+    }
+
+    const hpUsed = session.start.hpCount - end.hpCount;
+    const mpUsed = session.start.mpCount - end.mpCount;
+
+    const hpCost = hpUsed * session.hp.price;
+    const mpCost = mpUsed * session.mp.price;
+    const totalCost = hpCost + mpCost;
+
+    const mesosGain = end.mesos - session.start.mesos;
+    const netProfit = mesosGain - totalCost;
+
+    const expGain = end.exp - session.start.exp;
+    const crossedLevel = expGain < 0;
+
+    // 若跨級，只能假設本次跨越一次 100%。
+    // 不知道各級所需經驗時，無法精確計算跨級後的實際經驗量。
+    const displayedExpGain = crossedLevel ? expGain + 100 : expGain;
+
+    const tenMinuteFactor = 600 / elapsed;
+    const hourFactor = 3600 / elapsed;
+
+    const result = {
+      id: Date.now(),
+      date: new Date().toISOString(),
+      map: session.map,
+      durationSeconds: Math.round(elapsed),
+      startExp: session.start.exp,
+      endExp: end.exp,
+      expGain: displayedExpGain,
+      possibleLevelUp: crossedLevel,
+      startMesos: session.start.mesos,
+      endMesos: end.mesos,
+      mesosGain,
+      hpPotion: session.hp.name,
+      hpHeal: session.hp.heal,
+      hpPrice: session.hp.price,
+      hpUsed,
+      hpCost,
+      mpPotion: session.mp.name,
+      mpHeal: session.mp.heal,
+      mpPrice: session.mp.price,
+      mpUsed,
+      mpCost,
+      totalCost,
+      netProfit,
+      expPer10: displayedExpGain * tenMinuteFactor,
+      mesosPer10: mesosGain * tenMinuteFactor,
+      netPerHour: netProfit * hourFactor
+    };
+
+    const records = loadRecords();
+    records.push(result);
+    saveRecords(records);
+
+    $("result").textContent = buildResult(result);
+    $("sessionStatus").textContent = "本次計算完成";
+
+    clearInterval(timerInterval);
+    timerInterval = null;
+
+    session = null;
+    paused = false;
+    elapsedBeforePause = 0;
+
+    $("timer").textContent = formatTime(elapsed);
+    $("startButton").disabled = false;
+    $("finishButton").disabled = true;
+    $("pauseButton").disabled = true;
+    $("pauseButton").textContent = "暫停／繼續計時";
+
+    renderRecords();
+    renderMapComparison();
+
+    alert("計算完成！結果已保存到本機瀏覽器。");
+
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+function buildResult(r) {
+  const sign = n => n >= 0 ? "+" : "";
+
+  return [
+    `地圖：${r.map}`,
+    `練功時間：${formatTime(r.durationSeconds)}`,
+    "",
+    `經驗增加：${r.expGain.toFixed(4)}%${r.possibleLevelUp ? "（可能跨級，需確認）" : ""}`,
+    `每 10 分鐘經驗：${r.expPer10.toFixed(4)}%`,
+    "",
+    `楓幣變化：${sign(r.mesosGain)}${r.mesosGain.toLocaleString()}`,
+    `每 10 分鐘楓幣變化：${sign(r.mesosPer10)}${Math.round(r.mesosPer10).toLocaleString()}`,
+    "",
+    `HP：${r.hpPotion}，消耗 ${r.hpUsed} 瓶，成本 ${r.hpCost.toLocaleString()}`,
+    `MP：${r.mpPotion}，消耗 ${r.mpUsed} 瓶，成本 ${r.mpCost.toLocaleString()}`,
+    `補品總成本：${r.totalCost.toLocaleString()}`,
+    "",
+    `淨收益：${sign(r.netProfit)}${r.netProfit.toLocaleString()} 楓幣`,
+    `每小時淨收益：${sign(r.netPerHour)}${Math.round(r.netPerHour).toLocaleString()} 楓幣`,
+    "",
+    "注意：楓幣變化以開始、結束持有數量計算；",
+    "若期間有其他交易或支出，會影響結果。"
+  ].join("\n");
+}
+
+// ==========================================
+// 歷史紀錄
+// ==========================================
+
+function loadRecords() {
+  try {
+    const raw = localStorage.getItem("artaleEfficiencyRecords");
+    const data = raw ? JSON.parse(raw) : [];
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    alert("無法讀取紀錄，請先停止操作並檢查瀏覽器儲存空間。");
+    return [];
+  }
+}
+
+function saveRecords(records) {
+  try {
+    localStorage.setItem("artaleEfficiencyRecords", JSON.stringify(records));
+  } catch (error) {
+    throw new Error("保存失敗。可能是瀏覽器儲存空間不足，請先匯出備份。");
+  }
+}
+
+function renderRecords() {
+  const records = loadRecords().slice().reverse();
+
+  $("recordCount").textContent = `目前 ${records.length} 筆紀錄`;
+
+  if (records.length === 0) {
+    $("records").innerHTML = '<p class="small">目前還沒有歷史紀錄。</p>';
+    return;
+  }
+
+  $("records").innerHTML = records.map(r => `
+    <div class="record">
+      <div class="record-title">${escapeHTML(r.map)}</div>
+      <div class="record-detail">
+${escapeHTML(new Date(r.date).toLocaleString())}
+練功時間：${escapeHTML(formatTime(r.durationSeconds))}
+每 10 分鐘經驗：${Number(r.expPer10).toFixed(4)}%
+淨收益：${Number(r.netProfit).toLocaleString()} 楓幣
+每小時淨收益：${Math.round(r.netPerHour).toLocaleString()} 楓幣
+HP：${escapeHTML(r.hpPotion)} × ${r.hpUsed} 瓶
+MP：${escapeHTML(r.mpPotion)} × ${r.mpUsed} 瓶
+      </div>
+      <button onclick="showRecord(${Number(r.id)})">查看完整結果</button>
+      <button class="danger" onclick="deleteRecord(${Number(r.id)})">刪除這筆紀錄</button>
+    </div>
+  `).join("");
+}
+
+function showRecord(id) {
+  const record = loadRecords().find(r => r.id === id);
+  if (record) alert(buildResult(record));
+}
+
+function deleteRecord(id) {
+  if (!confirm("確定要刪除這筆紀錄嗎？")) return;
+
+  const records = loadRecords().filter(r => r.id !== id);
+  saveRecords(records);
+  renderRecords();
+  renderMapComparison();
+}
+
+function clearRecords() {
+  if (!confirm("確定刪除全部歷史紀錄？建議先匯出備份。")) return;
+  if (!confirm("再次確認：這個操作無法復原。")) return;
+
+  saveRecords([]);
+  renderRecords();
+  renderMapComparison();
+}
+
+// ==========================================
+// 地圖比較
+// ==========================================
+
+function renderMapComparison() {
+  const records = loadRecords();
+  const groups = {};
+
+  for (const r of records) {
+    if (!groups[r.map]) groups[r.map] = [];
+    groups[r.map].push(r);
+  }
+
+  const names = Object.keys(groups);
+
+  if (names.length === 0) {
+    $("mapComparison").innerHTML =
+      '<p class="small">完成練功並保存紀錄後，這裡就會顯示地圖比較。</p>';
+    return;
+  }
+
+  const rows = names.map(name => {
+    const list = groups[name];
+    const avgExp = list.reduce((sum, r) => sum + r.expPer10, 0) / list.length;
+    const avgNet = list.reduce((sum, r) => sum + r.netPerHour, 0) / list.length;
+
+    return { name, count: list.length, avgExp, avgNet };
+  }).sort((a, b) => b.avgExp - a.avgExp);
+
+  $("mapComparison").innerHTML = rows.map((r, i) => `
+    <div class="record">
+      <div class="record-title">
+        ${i + 1}. ${escapeHTML(r.name)}
+      </div>
+      <div class="record-detail">
+測試次數：${r.count}
+平均每 10 分鐘經驗：${r.avgExp.toFixed(4)}%
+平均每小時淨收益：${Math.round(r.avgNet).toLocaleString()} 楓幣
+      </div>
+    </div>
+  `).join("");
+}
+
+// ==========================================
+// 匯出備份
+// ==========================================
+
+function downloadFile(filename, content, mime) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function exportRecords() {
+  const records = loadRecords();
+
+  downloadFile(
+    "artale-efficiency-backup.json",
+    JSON.stringify(records, null, 2),
+    "application/json;charset=utf-8"
+  );
+}
+
+function exportCSV() {
+  const records = loadRecords();
+
+  if (records.length === 0) {
+    alert("目前沒有紀錄可以匯出。");
+    return;
+  }
+
+  const columns = [
+    ["date", "日期"],
+    ["map", "地圖"],
+    ["durationSeconds", "練功秒數"],
+    ["expGain", "經驗增加百分比"],
+    ["expPer10", "每10分鐘經驗"],
+    ["mesosGain", "楓幣變化"],
+    ["hpPotion", "HP補品"],
+    ["hpUsed", "HP消耗數量"],
+    ["hpCost", "HP成本"],
+    ["mpPotion", "MP補品"],
+    ["mpUsed", "MP消耗數量"],
+    ["mpCost", "MP成本"],
+    ["totalCost", "補品總成本"],
+    ["netProfit", "淨收益"],
+    ["netPerHour", "每小時淨收益"]
+  ];
+
+  const quote = value =>
+    '"' + String(value ?? "").replace(/"/g, '""') + '"';
+
+  const csv = [
+    columns.map(c => quote(c[1])).join(","),
+    ...records.map(r => columns.map(c => quote(r[c[0]])).join(","))
+  ].join("\r\n");
+
+  // BOM 讓常見試算表軟體較容易正確辨識繁體中文。
+  downloadFile(
+    "artale-efficiency-records.csv",
+    "\uFEFF" + csv,
+    "text/csv;charset=utf-8"
+  );
+}
+
+// ==========================================
+// 安全顯示文字
+// ==========================================
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, ch => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[ch]);
+}
+
+// 啟動
+populatePotionMenus();
+renderRecords();
+renderMapComparison();
+</script>
+</body>
+</html>
